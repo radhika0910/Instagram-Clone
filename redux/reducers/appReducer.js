@@ -3,14 +3,16 @@ const initialState = {
   profilePicture: '',
   posts: [],
   videos: [],
-  stories: [], // Add stories state
+  stories: [], 
+  gridImages: [],
 };
 
 // Action types
 export const SET_PROFILE_PICTURE = 'SET_PROFILE_PICTURE';
 export const SET_POSTS = 'SET_POSTS';
 export const SET_VIDEOS = 'SET_VIDEOS';
-export const SET_STORIES = 'SET_STORIES'; // Add action type for stories
+export const SET_STORIES = 'SET_STORIES'; 
+export const SET_GRID_IMAGES = 'SET_GRID_IMAGES'; 
 
 // Reducer
 const appReducer = (state = initialState, action) => {
@@ -19,6 +21,11 @@ const appReducer = (state = initialState, action) => {
       return {
         ...state,
         profilePicture: action.payload,
+      };
+       case SET_GRID_IMAGES:
+      return {
+        ...state,
+        gridImages: action.payload,
       };
     case SET_POSTS:
       return {

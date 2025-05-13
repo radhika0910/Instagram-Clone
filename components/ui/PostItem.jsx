@@ -1,60 +1,43 @@
 // Path: components\ui\PostItem.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useFetchAvatarImageQuery, useFetchPostImageQuery } from '../../redux/api/apiSlice';
 
 const PostItem = ({ post }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [imageUrl, setImageUrl] = useState(post.imageUrl); 
-  const [avatarUrl, setAvatarUrl] = useState(''); 
 
-  
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        
-        const postResponse = await fetch('https://boringapi.com/api/v1/photos/random?num=1');
-        const postData = await postResponse.json();
-        if (postData.success && postData.photos.length > 0) {
-          setImageUrl(postData.photos[0].url); 
-        }
+  // Fetch a unique post image using the post ID
+  const { data: postImageData } = useFetchPostImageQuery(post.id);
+  const postImageUrl = postImageData?.success ? postImageData.photos[0].url : post.imageUrl;
 
-        
-        const avatarResponse = await fetch('https://boringapi.com/api/v1/photos/random?num=1');
-        const avatarData = await avatarResponse.json();
-        if (avatarData.success && avatarData.photos.length > 0) {
-          setAvatarUrl(avatarData.photos[0].url); 
-        }
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
-    };
-
-    fetchImages();
-  }, []);
+  // Fetch a unique avatar image using the post ID
+  const { data: avatarImageData } = useFetchAvatarImageQuery(post.id);
+  const avatarImageUrl = avatarImageData?.success ? avatarImageData.photos[0].url : '';
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        <Image source={{ uri: avatarImageUrl }} style={styles.avatar} />
         <Text style={styles.username}>{post.user}</Text>
         <TouchableOpacity style={styles.options}>
           <Icon name="more-horizontal" size={20} color="black" />
         </TouchableOpacity>
       </View>
 
-      
-      <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+      {/* Post Image */}
+      <Image source={{ uri: postImageUrl }} style={styles.image} resizeMode="cover" />
 
+      {/* Footer */}
       <View style={styles.footer}>
         <View style={styles.interactions}>
           <TouchableOpacity
             style={styles.icon}
             onPress={() => setIsLiked(!isLiked)}
           >
-            <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? 'red' : 'black'} />
+            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={24} color={isLiked ? 'red' : 'black'} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.icon}>

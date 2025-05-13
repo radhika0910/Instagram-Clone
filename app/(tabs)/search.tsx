@@ -1,13 +1,31 @@
 // Path: app\(tabs)\search.tsx
 import React from 'react';
-import { FlatList, Image, SafeAreaView, StyleSheet, TextInput, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { ActivityIndicator, FlatList, Image, SafeAreaView, StyleSheet, TextInput, View } from 'react-native';
+import { useFetchPostsQuery } from '../../redux/api/apiSlice';
 
 const SearchScreen = () => {
-  const postsData = useSelector((state: { app: { posts: { id: string; imageUrl: string }[] } }) => state.app.posts); 
+ 
+  const { data: postsData, isLoading, isError } = useFetchPostsQuery(1); // Pass a valid argument
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#888" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <TextInput style={styles.errorText}>Failed to load posts. Please try again later.</TextInput>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Search Box */}
       <View style={styles.searchBoxContainer}>
         <TextInput
           style={styles.searchBox}
@@ -16,12 +34,13 @@ const SearchScreen = () => {
         />
       </View>
 
+      {/* Posts Grid */}
       <FlatList
-        data={postsData}
-        keyExtractor={(item) => item.id}
+        data={postsData?.photos || []} // Use the fetched posts data
+        keyExtractor={(item, index) => `${item.id || index}`}
         numColumns={3}
         renderItem={({ item }) => (
-          <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+          <Image source={{ uri: item.url }} style={styles.postImage} />
         )}
         showsVerticalScrollIndicator={false}
       />
@@ -33,6 +52,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#888',
   },
   searchBoxContainer: {
     padding: 35,

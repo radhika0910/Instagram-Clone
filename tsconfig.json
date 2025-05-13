@@ -10,6 +10,7 @@
   },
   "include": [
     "**/*.ts",
+    "src", "redux",
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"

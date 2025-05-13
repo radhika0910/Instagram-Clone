@@ -1,36 +1,35 @@
 // Path: app\(tabs)\profile.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
-type Photo = {
-  id: number;
-  url: string;
-};
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import { setGridImages } from '../../redux/actions/appActions';
+import { useFetchGridImagesQuery } from '../../redux/api/apiSlice';
+import { RootState } from '../../redux/store'; // Correctly import RootState
+
+// Create a typed version of useSelector
+const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 const ProfileScreen = () => {
-const profilePicture = useSelector((state: { app: { profilePicture: string } }) => state.app.profilePicture);
-const [postsData, setPostsData] = useState<{ id: string; imageUrl: string }[]>([]); 
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        // Fetch grid images
-        const gridResponse = await fetch('https://boringapi.com/api/v1/photos/random?num=6');
-        const gridData = await gridResponse.json();
-        if (gridData.success && gridData.photos.length > 0) {
-          const formattedPosts = gridData.photos.map((photo: Photo, index: number) => ({
-            id: `${index + 1}`,
-            imageUrl: photo.url,
-          }));
-          setPostsData(formattedPosts);
-        }
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      }
-    };
+  const dispatch = useDispatch();
+  const profilePicture = useSelector((state: { app: { profilePicture: string } }) => state.app.profilePicture);
 
-    fetchImages();
-  }, []);
+
+  // Fetch grid images using RTK Query
+  const { data: gridData, isLoading, isError } = useFetchGridImagesQuery(6);
+
+  // Access grid images from Redux
+  const gridImages = useTypedSelector((state) => state.app.gridImages);
+
+  useEffect(() => {
+    if (gridData?.success) {
+      const formattedGridImages = gridData.photos.map((photo: { url: any; }, index: number) => ({
+        id: `${index + 1}`,
+        imageUrl: photo.url,
+      }));
+      dispatch(setGridImages(formattedGridImages)); // Store grid images in Redux
+    }
+  }, [gridData, dispatch]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,15 +66,21 @@ const [postsData, setPostsData] = useState<{ id: string; imageUrl: string }[]>([
       </TouchableOpacity>
 
       {/* Grid Images */}
-      <FlatList
-        data={postsData}
-        keyExtractor={(item) => item.id}
-        numColumns={3}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <Text style={styles.loadingText}>Loading...</Text>
+      ) : isError ? (
+        <Text style={styles.errorText}>Failed to load images.</Text>
+      ) : (
+        <FlatList
+          data={gridImages}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          renderItem={({ item }) => (
+            <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -143,6 +148,18 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     margin: 1,
     backgroundColor: '#ffc0cb',
+  },
+  loadingText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#888',
+  },
+  errorText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: 'red',
   },
 });
 
