@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { setPosts, setProfilePicture, setVideos } from '../redux/actions/appActions';
+import { setPosts, setProfilePicture, setStories, setVideos } from '../redux/actions/appActions';
 
 // Define the type for the API response
 type Photo = {
@@ -46,6 +46,30 @@ const SplashScreen = () => {
         );
         const videosData = await videosResponse.json();
         dispatch(setVideos(videosData));
+
+        // Fetch stories
+        const stories = [
+          { id: 'your', imageUrl: require('@/assets/user_profile.jpg'), isYourStory: true },
+        ];
+
+        for (let i = 1; i <= 12; i++) {
+          const response = await fetch('https://boringapi.com/api/v1/photos/random?num=1');
+          const data = await response.json();
+          if (data.success && data.photos.length > 0) {
+            stories.push({
+              id: `user${i}`, imageUrl: data.photos[0].url,
+              isYourStory: false
+            });
+          } else {
+            // Use a fallback image if the API response is invalid
+            stories.push({
+              id: `user${i}`, imageUrl: 'https://via.placeholder.com/150',
+              isYourStory: false
+            });
+          }
+        }
+
+        dispatch(setStories(stories));
 
         // Simulate a delay for the splash screen
         setTimeout(() => {

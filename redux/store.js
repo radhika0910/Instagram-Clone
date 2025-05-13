@@ -1,11 +1,15 @@
 // Path: redux\store.js
-import { combineReducers, createStore } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { apiSlice } from './api/apiSlice';
 import appReducer from './reducers/appReducer';
 
-const rootReducer = combineReducers({
-  app: appReducer,
+const store = configureStore({
+  reducer: {
+    app: appReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
 });
-
-const store = createStore(rootReducer);
 
 export default store;
